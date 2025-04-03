@@ -81,32 +81,44 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	return { totalKeys: keys.length, removedKeys: unused.length };
 };
 
-const main = projectDir => {
-	if (!projectDir) {
-		console.error('Project path is missing. Please provide a valid path.');
+const main = projectDirs => {
+	if (!projectDirs) {
+		console.error('Missing project paths. Please provide at least one path.');
 		process.exit(1);
 	}
 
-	console.log(`\n---------- ${projectDir} ----------`);
-	const projectFiles = getAllFiles(projectDir);
-	const resxFiles = findMainResxFiles(projectDir);
-	if (resxFiles.length === 0) console.log('No main .resx files found!'); else console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
+	const dirs = Array.isArray(projectDirs) ? projectDirs : [projectDirs];
+	const overallStats = { totalDirs: dirs.length, totalProjectFiles: 0, totalResxFiles: 0, totalKeys: 0, totalRemovedKeys: 0 };
 
-	const stats = { resxFiles: resxFiles.length, totalKeys: 0, removedKeys: 0 };
-	for (const resx of resxFiles) {
-		try {
-			const fileStats = cleanSingleResx(resx, projectFiles, projectDir);
-			stats.totalKeys += fileStats.totalKeys;
-			stats.removedKeys += fileStats.removedKeys;
-		} catch (err) {
-			console.error(`Failed to process file ${resx}: ${err.message}`);
+	for (const dir of dirs) {
+		console.log(`\n---------- ${dir} ----------`);
+
+		const projectFiles = getAllFiles(dir);
+		const resxFiles = findMainResxFiles(dir);
+		overallStats.totalProjectFiles += projectFiles.length;
+		overallStats.totalResxFiles += resxFiles.length;
+		if (resxFiles.length === 0) {
+			console.log('No main .resx files found!');
+			continue;
+		} else {
+			console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
+		}
+
+		for (const resx of resxFiles) {
+			try {
+				const fileStats = cleanSingleResx(resx, projectFiles, dir);
+				overallStats.totalKeys += fileStats.totalKeys;
+				overallStats.totalRemovedKeys += fileStats.removedKeys;
+			} catch (err) {
+				console.error(`Failed to process file ${resx}: ${err.message}`);
+			}
 		}
 	}
 
-	console.log(`\nScanned a total of ${projectFiles.length} project file(s)`);
-	console.log('Total main .resx files processed:', stats.resxFiles);
-	console.log('Total keys found:', stats.totalKeys);
-	console.log('Total unused keys removed:', stats.removedKeys);
+	console.log(`\nScanned a total of ${overallStats.totalProjectFiles} project file(s) across ${overallStats.totalDirs} director${overallStats.totalDirs > 1 ? 'ies' : 'y'}.`);
+	console.log('Total main .resx files processed:', overallStats.totalResxFiles);
+	console.log('Total keys found:', overallStats.totalKeys);
+	console.log('Total unused keys removed:', overallStats.totalRemovedKeys);
 };
 
 if (require.main === module) {
@@ -117,8 +129,10 @@ if (require.main === module) {
 	}
 
 	const projectIndex = args.indexOf('--project');
-	const projectPath = projectIndex !== -1 && args[projectIndex + 1] ? args[projectIndex + 1] : null;
-	main(projectPath);
+	let projectPaths = null;
+	if (projectIndex !== -1 && args[projectIndex + 1]) projectPaths = args[projectIndex + 1].split(',').map(p => p.trim());
+
+	main(projectPaths);
 }
 
 module.exports = main;
