@@ -70,7 +70,7 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	const used = findUsedKeys(keys, projectFiles);
 	const unused = rawBlocks.filter((e) => !used.has(e.name));
 	if (unused.length > 0) {
-		console.log(`${path.relative(projectDir, resxPath)} - removing ${unused.length} unused strings:`);
+		console.log(`${path.relative(projectDir, resxPath)} – removing ${unused.length} unused string(s):`);
 		for (const e of unused) console.log(`   • ${e.name}`);
 	}
 
@@ -82,13 +82,13 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	original = original.replace(/<!--__COMMENT_(\d+)__-->/g, (_, index) => comments[Number(index)]);
 	fs.writeFileSync(resxPath, original.trim() + '\n', 'utf-8');
 
-	console.log(`${path.relative(projectDir, resxPath)} - completed`);
+	console.log(`${path.relative(projectDir, resxPath)} – cleanup completed`);
 	return { totalKeys: keys.length, removedKeys: unused.length };
 };
 
 const main = projectDir => {
 	if (!projectDir) {
-		console.error('No project path provided.');
+		console.error('Project path is missing. Please provide a valid path.');
 		process.exit(1);
 	}
 
@@ -97,7 +97,7 @@ const main = projectDir => {
 	const resxFiles = findMainResxFiles(projectDir);
 	if (resxFiles.length === 0) console.log('No main .resx files found!');
 
-	console.log(`Found ${resxFiles.length} main .resx files. Processing...`);
+	console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
 	const stats = { resxFiles: resxFiles.length, totalKeys: 0, removedKeys: 0 };
 	for (const resx of resxFiles) {
 		try {
@@ -105,14 +105,14 @@ const main = projectDir => {
 			stats.totalKeys += fileStats.totalKeys;
 			stats.removedKeys += fileStats.removedKeys;
 		} catch (err) {
-			console.error(`Error processing file ${resx}: ${err.message}`);
+			console.error(`Failed to process file ${resx}: ${err.message}`);
 		}
 	}
 
-	console.log(`\nTotal project files scanned: ${projectFiles.length}`);
-	console.log(`Total main .resx files processed: ${stats.resxFiles}`);
-	console.log(`Total keys found: ${stats.totalKeys}`);
-	console.log(`Total unused keys removed: ${stats.removedKeys}`);
+	console.log(`\nScanned a total of ${projectFiles.length} project file(s)`);
+	console.log('Total main .resx files processed:', stats.resxFiles);
+	console.log('Total keys found:', stats.totalKeys);
+	console.log('Total unused keys removed:', stats.removedKeys);
 };
 
 if (require.main === module) {
