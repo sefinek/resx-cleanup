@@ -17,11 +17,7 @@ const getAllFiles = (dir, files = []) => {
 	return files;
 };
 
-const findMainResxFiles = dir =>
-	getAllFiles(dir)
-		.filter(f => f.endsWith('.resx'))
-		.filter(f => !(/\.[a-z]{2}(-[A-Z]{2})?\.resx$/).test(f));
-
+const findMainResxFiles = dir => getAllFiles(dir).filter(f => f.endsWith('.resx') && !(/\.[a-z]{2}(-[A-Z]{2})?\.resx$/).test(f));
 const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const findUsedKeys = (keys, files) => {
@@ -41,9 +37,9 @@ const findUsedKeys = (keys, files) => {
 };
 
 const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
-	let original = fs.readFileSync(resxPath, 'utf-8');
+	let content = fs.readFileSync(resxPath, 'utf-8');
 	const comments = [];
-	original = original.replace(/<!--[\s\S]*?-->/g, match => {
+	content = content.replace(/<!--[\s\S]*?-->/g, match => {
 		comments.push(match);
 		return `<!--__COMMENT_${comments.length - 1}__-->`;
 	});
@@ -52,15 +48,15 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	const keys = [];
 	const rawBlocks = [];
 	let match;
-	while ((match = dataRegex.exec(original)) !== null) {
+	while ((match = dataRegex.exec(content)) !== null) {
 		const fullBlock = match[0];
 		const name = match[1];
 		const isIgnorable =
-            name.startsWith('>>') ||
-            name.startsWith('$this.') ||
-            name.includes('.') ||
-            fullBlock.includes('mimetype=') ||
-            fullBlock.includes('type=');
+			name.startsWith('>>') ||
+			name.startsWith('$this.') ||
+			name.includes('.') ||
+			fullBlock.includes('mimetype=') ||
+			fullBlock.includes('type=');
 		if (!isIgnorable) {
 			keys.push(name);
 			rawBlocks.push({ name, raw: fullBlock });
@@ -68,20 +64,19 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	}
 
 	const used = findUsedKeys(keys, projectFiles);
-	const unused = rawBlocks.filter((e) => !used.has(e.name));
+	const unused = rawBlocks.filter(e => !used.has(e.name));
 	if (unused.length > 0) {
 		console.log(`${path.relative(projectDir, resxPath)} – removing ${unused.length} unused string(s):`);
-		for (const e of unused) console.log(`   • ${e.name}`);
+		unused.forEach(e => console.log(`   • ${e.name}`));
 	}
 
 	for (const e of unused) {
 		const pattern = new RegExp(`\\s*<data[^>]+name="${escapeRegex(e.name)}"[^>]*>[\\s\\S]*?<\\/data>\\s*`, 'g');
-		original = original.replace(pattern, '\n  ');
+		content = content.replace(pattern, '\n  ');
 	}
 
-	original = original.replace(/<!--__COMMENT_(\d+)__-->/g, (_, index) => comments[Number(index)]);
-	fs.writeFileSync(resxPath, original.trim() + '\n', 'utf-8');
-
+	content = content.replace(/<!--__COMMENT_(\d+)__-->/g, (_, index) => comments[Number(index)]);
+	fs.writeFileSync(resxPath, content.trim(), 'utf-8');
 	console.log(`${path.relative(projectDir, resxPath)} – cleanup completed`);
 	return { totalKeys: keys.length, removedKeys: unused.length };
 };
@@ -95,9 +90,8 @@ const main = projectDir => {
 	console.log(`\n---------- ${projectDir} ----------`);
 	const projectFiles = getAllFiles(projectDir);
 	const resxFiles = findMainResxFiles(projectDir);
-	if (resxFiles.length === 0) console.log('No main .resx files found!');
+	if (resxFiles.length === 0) console.log('No main .resx files found!'); else console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
 
-	console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
 	const stats = { resxFiles: resxFiles.length, totalKeys: 0, removedKeys: 0 };
 	for (const resx of resxFiles) {
 		try {
