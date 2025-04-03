@@ -47,8 +47,10 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	const dataRegex = /<data[^>]+name="([^"]+)"[^>]*>[\s\S]*?<\/data>/g;
 	const keys = [];
 	const rawBlocks = [];
+	let totalKeys = 0;
 	let match;
 	while ((match = dataRegex.exec(content)) !== null) {
+		totalKeys++;
 		const fullBlock = match[0];
 		const name = match[1];
 		const isIgnorable =
@@ -78,7 +80,7 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	content = content.replace(/<!--__COMMENT_(\d+)__-->/g, (_, index) => comments[Number(index)]);
 	fs.writeFileSync(resxPath, content.trim(), 'utf-8');
 	console.log(`${path.relative(projectDir, resxPath)} – cleanup completed`);
-	return { totalKeys: keys.length, removedKeys: unused.length };
+	return { totalKeys, removedKeys: unused.length };
 };
 
 const main = projectDirs => {
