@@ -1,6 +1,6 @@
 {
   "name": "resx-cleanup",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A command-line tool for identifying and removing unused entries from .resx resource files in .NET applications to help keep your localization files clean and maintainable.",
   "keywords": [
     "resx",
