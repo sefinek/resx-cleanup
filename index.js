@@ -79,7 +79,7 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	return { totalKeys, removedKeys: unused.length };
 };
 
-const main = projectDirs => {
+const resxCleanup = projectDirs => {
 	if (!projectDirs) {
 		console.error('Missing project paths. Please provide at least one path.');
 		process.exit(1);
@@ -130,7 +130,7 @@ if (require.main === module) {
 	let projectPaths = null;
 	if (projectIndex !== -1 && args[projectIndex + 1]) projectPaths = args[projectIndex + 1].split(',').map(p => p.trim());
 
-	main(projectPaths);
+	resxCleanup(projectPaths);
 }
 
-module.exports = main;
+module.exports = { resxCleanup, version };

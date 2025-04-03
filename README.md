@@ -16,8 +16,10 @@ npm install resx-cleanup
 
 ### Example
 ```js
-const resxCleanup = require('resx-cleanup');
+const { resxCleanup, version } = require('resx-cleanup');
+
 resxCleanup(['C:\\Users\\KeyboardCat\\source\\repos\\WinFormsApp1', 'C:\\Users\\KeyboardCat\\source\\repos\\WinFormsApp2']);
+console.log('Version:', version);
 ```
 
 ## 💻 CLI
@@ -29,6 +31,11 @@ npm install resx-cleanup -g
 ### Example usage
 ```bash
 resx-cleanup --project C:\Users\Sefinek\source\repos\WinFormsApp1
+```
+
+### Version
+```bash
+resx-cleanup --version
 ```
 
 
