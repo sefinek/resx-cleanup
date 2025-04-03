@@ -51,14 +51,10 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 	let match;
 	while ((match = dataRegex.exec(content)) !== null) {
 		totalKeys++;
+
 		const fullBlock = match[0];
 		const name = match[1];
-		const isIgnorable =
-			name.startsWith('>>') ||
-			name.startsWith('$this.') ||
-			name.includes('.') ||
-			fullBlock.includes('mimetype=') ||
-			fullBlock.includes('type=');
+		const isIgnorable = name.startsWith('>>') || name.startsWith('$this.') || name.includes('.') || fullBlock.includes('mimetype=') || fullBlock.includes('type=');
 		if (!isIgnorable) {
 			keys.push(name);
 			rawBlocks.push({ name, raw: fullBlock });
