@@ -32,7 +32,8 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "resx-cleanup": "./index.js"
+    "resx-cleanup": "./index.js",
+    "resx-purge": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
