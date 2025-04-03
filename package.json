@@ -1,11 +1,39 @@
 {
   "name": "resx-cleanup",
   "version": "1.0.0",
-  "description": "",
+  "description": "A command-line tool for identifying and removing unused entries from .resx resource files in .NET applications to help keep your localization files clean and maintainable.",
+  "keywords": [
+    "resx",
+    "cleanup",
+    "remove unused",
+    "resource",
+    "resource files",
+    "resource cleaner",
+    "dotnet",
+    "visual studio",
+    "localization",
+    "translations",
+    "xml",
+    "resx parser",
+    "cli",
+    ".net",
+    "automation"
+  ],
+  "homepage": "https://github.com/sefinek/resx-cleanup#readme",
+  "bugs": {
+    "url": "https://github.com/sefinek/resx-cleanup/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sefinek/resx-cleanup.git"
+  },
   "license": "MIT",
   "author": "Sefinek <contact@sefinek.net> (https://sefinek.net)",
   "type": "commonjs",
   "main": "index.js",
+  "bin": {
+    "resx-cleanup": "./index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "up": "ncu -u && npm install && npm update && npm audit fix"
