@@ -40,4 +40,4 @@ resx-cleanup --version
 
 
 ## 🔖 MIT License
-Copyright 2025 © by [Sefinek](https://sefinek.net). All Rights Reserved.
+Copyright © 2024-2026 [Sefinek](https://sefinek.net)
