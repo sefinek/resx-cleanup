@@ -3,7 +3,6 @@ A CLI tool for removing unused entries from `.resx` resource files in **.NET app
 It should also work on Linux.
 
 
-
 ## ⚠️ Important
 Before using this tool, make sure to **back up your RESX files**.
 
@@ -21,6 +20,7 @@ const { resxCleanup, version } = require('resx-cleanup');
 resxCleanup(['C:\\Users\\KeyboardCat\\source\\repos\\WinFormsApp1', 'C:\\Users\\KeyboardCat\\source\\repos\\WinFormsApp2']);
 console.log('Version:', version);
 ```
+
 
 ## 💻 CLI
 ### Global Installation
