@@ -36,9 +36,18 @@
   "type": "commonjs",
   "main": "index.js",
   "bin": {
-    "resx-cleanup": "./index.js",
-    "resx-purge": "./index.js"
+    "resx-cleanup": "index.js",
+    "resx-purge": "index.js"
   },
+  "directories": {
+    "example": "example"
+  },
+  "files": [
+    "example",
+    "index.js",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "m": "ncu -u && npm install && npm update",
     "test": "echo \"Error: no test specified\" && exit 1"
