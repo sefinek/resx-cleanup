@@ -1,20 +1,20 @@
 {
   "name": "resx-cleanup",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A command-line tool for identifying and removing unused entries from .resx resource files in .NET applications to help keep your localization files clean and maintainable.",
   "keywords": [
     "resx",
     "cleanup",
-    "remove unused",
+    "remove-unused",
     "resource",
-    "resource files",
-    "resource cleaner",
+    "resource-files",
+    "resource-cleaner",
     "dotnet",
-    "visual studio",
+    "visual-studio",
     "localization",
     "translations",
     "xml",
-    "resx parser",
+    "resx-parser",
     "cli",
     ".net",
     "automation"
@@ -40,7 +40,8 @@
     "resx-purge": "index.js"
   },
   "directories": {
-    "example": "example"
+    "example": "example",
+    "test": "test"
   },
   "files": [
     "example",
@@ -49,11 +50,19 @@
     "README.md"
   ],
   "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "m": "ncu -u && npm install && npm update",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "globals": "^17.6.0"
+    "@jest/globals": "^30.5.1",
+    "globals": "^17.12.0",
+    "jest": "^30.5.1"
+  },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "unrs-resolver@1.12.2": true
   }
 }

@@ -4,9 +4,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { version } = require('./package.json');
 
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'bin', 'obj', '.vs', '.idea']);
+
 const getAllFiles = (dir, files = []) => {
 	const entries = fs.readdirSync(dir, { withFileTypes: true });
 	for (const entry of entries) {
+		if (entry.isDirectory() && SKIP_DIRS.has(entry.name)) continue;
+
 		const fullPath = path.join(dir, entry.name);
 		if (entry.isDirectory()) {
 			getAllFiles(fullPath, files);
@@ -17,17 +21,15 @@ const getAllFiles = (dir, files = []) => {
 	return files;
 };
 
-const findMainResxFiles = dir => getAllFiles(dir).filter(f => f.endsWith('.resx') && !(/\.[a-z]{2}(-[A-Z]{2})?\.resx$/).test(f));
+const findMainResxFiles = files => files.filter(f => (/^[^.]+\.resx$/i).test(path.basename(f)));
 const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const findUsedKeys = (keys, files) => {
+const findUsedKeys = (keys, sourceContents) => {
 	const used = new Set();
 	if (keys.length === 0) return used;
 
 	const pattern = new RegExp(`\\b(?:Resources|Properties\\.Resources)\\.(${keys.map(escapeRegex).join('|')})\\b`, 'g');
-	for (const file of files) {
-		if (!(/\.(cs|cshtml|xaml)$/i).test(file)) continue;
-		const content = fs.readFileSync(file, 'utf-8');
+	for (const content of sourceContents) {
 		let match;
 		while ((match = pattern.exec(content)) !== null) {
 			used.add(match[1]);
@@ -36,7 +38,7 @@ const findUsedKeys = (keys, files) => {
 	return used;
 };
 
-const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
+const cleanSingleResx = (resxPath, sourceContents, projectDir) => {
 	let content = fs.readFileSync(resxPath, 'utf-8');
 	const comments = [];
 	content = content.replace(/<!--[\s\S]*?-->/g, match => {
@@ -54,14 +56,14 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 
 		const fullBlock = match[0];
 		const name = match[1];
-		const isIgnorable = name.startsWith('>>') || name.startsWith('$this.') || name.includes('.') || fullBlock.includes('mimetype=') || fullBlock.includes('type=');
+		const isIgnorable = name.startsWith('&gt;&gt;') || name.startsWith('$this.') || name.includes('.') || fullBlock.includes('mimetype=') || fullBlock.includes('type=');
 		if (!isIgnorable) {
 			keys.push(name);
 			rawBlocks.push({ name, raw: fullBlock });
 		}
 	}
 
-	const used = findUsedKeys(keys, projectFiles);
+	const used = findUsedKeys(keys, sourceContents);
 	const unused = rawBlocks.filter(e => !used.has(e.name));
 	if (unused.length > 0) {
 		console.log(`${path.relative(projectDir, resxPath)} – removing ${unused.length} unused string(s):`);
@@ -80,10 +82,7 @@ const cleanSingleResx = (resxPath, projectFiles, projectDir) => {
 };
 
 const resxCleanup = projectDirs => {
-	if (!projectDirs) {
-		console.error('Missing project paths. Please provide at least one path.');
-		process.exit(1);
-	}
+	if (!projectDirs) throw new Error('Missing project paths. Please provide at least one path.');
 
 	const dirs = Array.isArray(projectDirs) ? projectDirs : [projectDirs];
 	const overallStats = { totalDirs: dirs.length, totalProjectFiles: 0, totalResxFiles: 0, totalKeys: 0, totalRemovedKeys: 0 };
@@ -92,7 +91,7 @@ const resxCleanup = projectDirs => {
 		console.log(`\n---------- ${dir} ----------`);
 
 		const projectFiles = getAllFiles(dir);
-		const resxFiles = findMainResxFiles(dir);
+		const resxFiles = findMainResxFiles(projectFiles);
 		overallStats.totalProjectFiles += projectFiles.length;
 		overallStats.totalResxFiles += resxFiles.length;
 		if (resxFiles.length === 0) {
@@ -102,9 +101,11 @@ const resxCleanup = projectDirs => {
 			console.log(`Detected ${resxFiles.length} main .resx file(s). Starting cleanup...`);
 		}
 
+		const sourceContents = projectFiles.filter(f => (/\.(cs|cshtml|xaml)$/i).test(f)).map(f => fs.readFileSync(f, 'utf-8'));
+
 		for (const resx of resxFiles) {
 			try {
-				const fileStats = cleanSingleResx(resx, projectFiles, dir);
+				const fileStats = cleanSingleResx(resx, sourceContents, dir);
 				overallStats.totalKeys += fileStats.totalKeys;
 				overallStats.totalRemovedKeys += fileStats.removedKeys;
 			} catch (err) {
@@ -130,7 +131,12 @@ if (require.main === module) {
 	let projectPaths = null;
 	if (projectIndex !== -1 && args[projectIndex + 1]) projectPaths = args[projectIndex + 1].split(',').map(p => p.trim());
 
-	resxCleanup(projectPaths);
+	try {
+		resxCleanup(projectPaths);
+	} catch (err) {
+		console.error(err.message);
+		process.exit(1);
+	}
 }
 
-module.exports = { resxCleanup, version };
+module.exports = { resxCleanup, version, getAllFiles, findMainResxFiles, escapeRegex, findUsedKeys, cleanSingleResx };
